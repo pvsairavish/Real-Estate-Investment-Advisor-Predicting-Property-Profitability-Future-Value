@@ -29,7 +29,8 @@ Thumbs.db
 # Streamlit secrets & runtime cache
 .streamlit/secrets.toml
 
-# Temporary / backup files
+# Temporary / backup / local files
 app_backup.py
+video_script.txt
 *.bak
 *.tmp
