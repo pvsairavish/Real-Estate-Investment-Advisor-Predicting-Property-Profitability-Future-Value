@@ -1,0 +1,27 @@
+{
+    "classification_model": "Tuned XGBoost Classifier",
+    "classification_best_params": {
+        "model__subsample": 0.75,
+        "model__n_estimators": 200,
+        "model__max_depth": 8,
+        "model__learning_rate": 0.08,
+        "model__colsample_bytree": 0.75
+    },
+    "classification_joblib": "/kaggle/working/real_estate_ml/best_classification_pipeline.joblib",
+    "classification_h5_package": "/kaggle/working/real_estate_ml/best_classification_model.h5",
+    "regression_model": "Tuned XGBoost Regressor",
+    "regression_best_params": {
+        "model__subsample": 0.85,
+        "model__n_estimators": 200,
+        "model__max_depth": 7,
+        "model__learning_rate": 0.1,
+        "model__colsample_bytree": 1.0
+    },
+    "regression_joblib": "/kaggle/working/real_estate_ml/best_regression_pipeline.joblib",
+    "regression_h5_package": "/kaggle/working/real_estate_ml/best_regression_model.h5",
+    "random_state": 42,
+    "dataset_rows": 250000,
+    "dataset_columns": 36,
+    "future_price_target_note": "Future_Price_5Y is an engineered scenario target because the source dataset contains no observed five-year future prices.",
+    "h5_note": "The .h5 files are HDF5 packages containing the sklearn/XGBoost pipelines, not native Keras models. The .joblib files are the recommended deployment artifacts."
+}
