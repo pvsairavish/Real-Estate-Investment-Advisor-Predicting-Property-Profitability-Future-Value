@@ -652,78 +652,54 @@ with tab_advisor:
         # --- Column 1: Location & Category ---
         with col_loc:
             st.markdown("##### 📍 Location & Category")
-            available_states = sorted(list(locations_data.keys())) if locations_data else [st.session_state["w_state"]]
-            
-            def_st_idx = available_states.index(st.session_state["w_state"]) if st.session_state["w_state"] in available_states else 0
-            selected_state = st.selectbox("State", available_states, index=def_st_idx, key="w_state")
+            available_states = sorted(list(locations_data.keys())) if locations_data else ["Telangana"]
+            if st.session_state.get("w_state") not in available_states:
+                st.session_state["w_state"] = available_states[0]
+            st.selectbox("State", available_states, key="w_state")
+            selected_state = st.session_state["w_state"]
 
             # Cascading City selection
-            available_cities = locations_data.get(selected_state, [st.session_state.get("w_city", "Hyderabad")])
-            curr_city = st.session_state.get("w_city", available_cities[0])
-            if curr_city not in available_cities:
-                curr_city = available_cities[0]
-            
-            def_city_idx = available_cities.index(curr_city)
-            selected_city = st.selectbox("City", available_cities, index=def_city_idx, key="w_city")
+            available_cities = locations_data.get(selected_state, ["Hyderabad"])
+            if st.session_state.get("w_city") not in available_cities:
+                st.session_state["w_city"] = available_cities[0]
+            st.selectbox("City", available_cities, key="w_city")
+            selected_city = st.session_state["w_city"]
 
             prop_types = ["Apartment", "Independent House", "Villa"]
-            property_type = st.selectbox(
-                "Property Type",
-                prop_types,
-                index=prop_types.index(st.session_state.get("w_prop_type", "Apartment")),
-                key="w_prop_type",
-            )
+            if st.session_state.get("w_prop_type") not in prop_types:
+                st.session_state["w_prop_type"] = prop_types[0]
+            st.selectbox("Property Type", prop_types, key="w_prop_type")
+            property_type = st.session_state["w_prop_type"]
 
             facings = ["East", "North", "South", "West"]
-            facing = st.selectbox(
-                "Facing Direction",
-                facings,
-                index=facings.index(st.session_state.get("w_facing", "East")),
-                key="w_facing",
-            )
+            if st.session_state.get("w_facing") not in facings:
+                st.session_state["w_facing"] = facings[0]
+            st.selectbox("Facing Direction", facings, key="w_facing")
+            facing = st.session_state["w_facing"]
 
             owners = ["Owner", "Broker", "Builder"]
-            owner_type = st.selectbox(
-                "Seller / Owner Type",
-                owners,
-                index=owners.index(st.session_state.get("w_owner", "Owner")),
-                key="w_owner",
-            )
+            if st.session_state.get("w_owner") not in owners:
+                st.session_state["w_owner"] = owners[0]
+            st.selectbox("Seller / Owner Type", owners, key="w_owner")
+            owner_type = st.session_state["w_owner"]
 
             avails = ["Ready_to_Move", "Under_Construction"]
-            availability_status = st.selectbox(
-                "Availability Status",
-                avails,
-                index=avails.index(st.session_state.get("w_avail", "Ready_to_Move")),
-                format_func=lambda x: "Ready to Move" if x == "Ready_to_Move" else "Under Construction",
-                key="w_avail",
-            )
+            if st.session_state.get("w_avail") not in avails:
+                st.session_state["w_avail"] = avails[0]
+            st.selectbox("Availability Status", avails, format_func=lambda x: "Ready to Move" if x == "Ready_to_Move" else "Under Construction", key="w_avail")
+            availability_status = st.session_state["w_avail"]
 
         # --- Column 2: Dimensions & Pricing ---
         with col_spec:
             st.markdown("##### 📐 Pricing & Dimensions")
-            
-            bhk = st.slider("Bedrooms (BHK)", min_value=1, max_value=8, value=int(st.session_state.get("w_bhk", 3)), step=1, key="w_bhk")
-            
-            size_sqft = st.number_input(
-                "Carpet / Super Area (SqFt)",
-                min_value=300.0,
-                max_value=15000.0,
-                value=float(st.session_state.get("w_size", 1650.0)),
-                step=50.0,
-                key="w_size",
-                help="Approx. area in square feet",
-            )
+            st.slider("Bedrooms (BHK)", min_value=1, max_value=8, step=1, key="w_bhk")
+            bhk = st.session_state["w_bhk"]
 
-            price_lakhs = st.number_input(
-                "Current Purchase Price (₹ Lakhs)",
-                min_value=5.0,
-                max_value=5000.0,
-                value=float(st.session_state.get("w_price", 125.0)),
-                step=1.0,
-                key="w_price",
-                help="100 Lakhs = 1 Crore",
-            )
+            st.number_input("Carpet / Super Area (SqFt)", min_value=300.0, max_value=15000.0, step=50.0, key="w_size", help="Approx. area in square feet")
+            size_sqft = st.session_state["w_size"]
+
+            st.number_input("Current Purchase Price (₹ Lakhs)", min_value=5.0, max_value=5000.0, step=1.0, key="w_price", help="100 Lakhs = 1 Crore")
+            price_lakhs = st.session_state["w_price"]
 
             calc_rate = (price_lakhs * 100000.0) / size_sqft if size_sqft > 0 else 0
             st.markdown(
@@ -737,88 +713,55 @@ with tab_advisor:
 
             col_age1, col_age2 = st.columns(2)
             with col_age1:
-                year_built = st.number_input(
-                    "Year Built",
-                    min_value=1950,
-                    max_value=2026,
-                    value=int(st.session_state.get("w_year", 2022)),
-                    step=1,
-                    key="w_year",
-                )
+                st.number_input("Year Built", min_value=1950, max_value=2026, step=1, key="w_year")
+                year_built = st.session_state["w_year"]
             with col_age2:
-                age_of_property = st.number_input(
-                    "Age (Years)",
-                    min_value=0,
-                    max_value=60,
-                    value=int(st.session_state.get("w_age", 4)),
-                    step=1,
-                    key="w_age",
-                )
+                st.number_input("Age (Years)", min_value=0, max_value=60, step=1, key="w_age")
+                age_of_property = st.session_state["w_age"]
 
             col_fl1, col_fl2 = st.columns(2)
             with col_fl1:
-                floor_no = st.number_input(
-                    "Floor Number",
-                    min_value=0,
-                    max_value=100,
-                    value=int(st.session_state.get("w_floor", 7)),
-                    step=1,
-                    key="w_floor",
-                )
+                st.number_input("Floor Number", min_value=0, max_value=100, step=1, key="w_floor")
+                floor_no = st.session_state["w_floor"]
             with col_fl2:
-                total_floors = st.number_input(
-                    "Total Floors",
-                    min_value=1,
-                    max_value=100,
-                    value=int(st.session_state.get("w_total_floors", 15)),
-                    step=1,
-                    key="w_total_floors",
-                )
+                st.number_input("Total Floors", min_value=1, max_value=100, step=1, key="w_total_floors")
+                total_floors = st.session_state["w_total_floors"]
 
         # --- Column 3: Amenities & Neighborhood ---
         with col_amen:
             st.markdown("##### 🌟 Amenities & Infrastructure")
 
             furn_options = ["Furnished", "Semi-furnished", "Unfurnished"]
-            furnished_status = st.selectbox(
-                "Furnishing Condition",
-                furn_options,
-                index=furn_options.index(st.session_state.get("w_furnished", "Semi-furnished")),
-                key="w_furnished",
-            )
+            if st.session_state.get("w_furnished") not in furn_options:
+                st.session_state["w_furnished"] = furn_options[1]
+            st.selectbox("Furnishing Condition", furn_options, key="w_furnished")
+            furnished_status = st.session_state["w_furnished"]
 
             all_amenity_options = ["Clubhouse", "Garden", "Gym", "Playground", "Pool"]
-            cur_amen = st.session_state.get("w_amenities", ["Gym", "Pool"])
-            if isinstance(cur_amen, str):
-                cur_amen = [x.strip() for x in cur_amen.split(",") if x.strip()]
-
-            selected_amenities = st.multiselect(
-                "Included Amenities",
-                all_amenity_options,
-                default=[a for a in cur_amen if a in all_amenity_options],
-                key="w_amenities",
-                help="Select all society amenities available",
-            )
+            if not isinstance(st.session_state.get("w_amenities"), list):
+                st.session_state["w_amenities"] = ["Gym", "Pool"]
+            st.multiselect("Included Amenities", all_amenity_options, key="w_amenities", help="Select all society amenities available")
+            selected_amenities = st.session_state["w_amenities"]
             amenities_str = ", ".join(sorted(selected_amenities))
 
-            public_transport = st.select_slider(
-                "Public Transit Connectivity",
-                options=["Low", "Medium", "High"],
-                value=st.session_state.get("w_transport", "High"),
-                key="w_transport",
-            )
+            st.select_slider("Public Transit Connectivity", options=["Low", "Medium", "High"], key="w_transport")
+            public_transport = st.session_state["w_transport"]
 
             col_sc, col_hp = st.columns(2)
             with col_sc:
-                nearby_schools = st.number_input("Nearby Schools", min_value=0, max_value=30, value=int(st.session_state.get("w_schools", 4)), key="w_schools")
+                st.number_input("Nearby Schools", min_value=0, max_value=30, key="w_schools")
+                nearby_schools = st.session_state["w_schools"]
             with col_hp:
-                nearby_hospitals = st.number_input("Nearby Hospitals", min_value=0, max_value=30, value=int(st.session_state.get("w_hospitals", 3)), key="w_hospitals")
+                st.number_input("Nearby Hospitals", min_value=0, max_value=30, key="w_hospitals")
+                nearby_hospitals = st.session_state["w_hospitals"]
 
             col_pk, col_sec = st.columns(2)
             with col_pk:
-                parking_space = st.radio("Dedicated Parking", ["Yes", "No"], horizontal=True, index=0 if st.session_state.get("w_parking") == "Yes" else 1, key="w_parking")
+                st.radio("Dedicated Parking", ["Yes", "No"], horizontal=True, key="w_parking")
+                parking_space = st.session_state["w_parking"]
             with col_sec:
-                security = st.radio("24/7 Security", ["Yes", "No"], horizontal=True, index=0 if st.session_state.get("w_security") == "Yes" else 1, key="w_security")
+                st.radio("24/7 Security", ["Yes", "No"], horizontal=True, key="w_security")
+                security = st.session_state["w_security"]
 
     # Validation
     if floor_no > total_floors:
