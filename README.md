@@ -214,7 +214,9 @@ Real-Estate-Investment-Advisor/
 │   ├── best_classification_pipeline.joblib  # Serialized XGBoost Deal Classifier
 │   ├── best_regression_pipeline.joblib      # Serialized XGBoost 5Y Price Regressor
 │   ├── locations.json                       # Backup location taxonomy
-│   └── model_metadata.json                  # Model hyperparams & training metrics
+│   └── model_metadata.json                 # Model hyperparams & training metrics
+│
+├──  real-estate-investment-advisor
 │
 └── india_housing_prices.csv                 # Source dataset (250,000+ Indian property records)
 ```
