@@ -15,7 +15,7 @@ from pathlib import Path
 warnings.filterwarnings("ignore")
 
 # ---------------------------------------------------------
-# Compatibility shim for scikit-learn ColumnTransformer
+# Compatibility shims for scikit-learn cross-version support
 # ---------------------------------------------------------
 try:
     import sklearn.compose._column_transformer as _ct
@@ -31,6 +31,24 @@ try:
 
         _ct._RemainderColsList = _RemainderColsList
         sys.modules["sklearn.compose._column_transformer"]._RemainderColsList = _RemainderColsList
+except Exception:
+    pass
+
+try:
+    from sklearn.impute import SimpleImputer
+    _orig_imputer_getattr = getattr(SimpleImputer, "__getattr__", None)
+
+    def _imputer_fallback_getattr(self, name):
+        if name == "_fill_dtype":
+            if hasattr(self, "statistics_") and self.statistics_ is not None:
+                if getattr(self.statistics_, "dtype", None) is not None and self.statistics_.dtype.kind in ("U", "S", "O"):
+                    return np.dtype("object")
+            return np.dtype("float64")
+        if _orig_imputer_getattr is not None:
+            return _orig_imputer_getattr(self, name)
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+    SimpleImputer.__getattr__ = _imputer_fallback_getattr
 except Exception:
     pass
 
@@ -246,10 +264,29 @@ st.markdown(
 # ---------------------------------------------------------
 # Resource Loading & Caching
 # ---------------------------------------------------------
+def patch_pipeline(model):
+    """Ensure all nested transformers have required attributes across scikit-learn versions."""
+    try:
+        if hasattr(model, "named_steps") and "preprocessor" in model.named_steps:
+            pre = model.named_steps["preprocessor"]
+            if hasattr(pre, "named_transformers_"):
+                if "num" in pre.named_transformers_:
+                    num_pipe = pre.named_transformers_["num"]
+                    if hasattr(num_pipe, "named_steps") and "imputer" in num_pipe.named_steps:
+                        num_pipe.named_steps["imputer"]._fill_dtype = np.dtype("float64")
+                if "cat" in pre.named_transformers_:
+                    cat_pipe = pre.named_transformers_["cat"]
+                    if hasattr(cat_pipe, "named_steps") and "imputer" in cat_pipe.named_steps:
+                        cat_pipe.named_steps["imputer"]._fill_dtype = np.dtype("object")
+    except Exception:
+        pass
+    return model
+
+
 @st.cache_resource(show_spinner=False)
 def load_models_and_metadata():
-    classification_model = joblib.load(CLASSIFICATION_MODEL_PATH)
-    regression_model = joblib.load(REGRESSION_MODEL_PATH)
+    classification_model = patch_pipeline(joblib.load(CLASSIFICATION_MODEL_PATH))
+    regression_model = patch_pipeline(joblib.load(REGRESSION_MODEL_PATH))
 
     metadata = {}
     if METADATA_PATH.exists():
