@@ -216,7 +216,7 @@ Real-Estate-Investment-Advisor/
 │   ├── locations.json                       # Backup location taxonomy
 │   └── model_metadata.json                 # Model hyperparams & training metrics
 │
-├──  real-estate-investment-advisor
+├──  real-estate-investment-advisor.ipynb
 │
 └── india_housing_prices.csv                 # Source dataset (250,000+ Indian property records)
 ```
