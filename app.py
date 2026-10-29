@@ -1,12 +1,3 @@
-
-
-"""
-PropVision AI — Real Estate Investment Advisor
-High-Performance Interactive UI/UX with Dual-Engine Machine Learning
-(Investment Classifier & 5-Year Scenario Regressor)
-"""
-
-import io
 """
 PropVision AI — Real Estate Investment Advisor
 High-Performance Interactive UI/UX with Dual-Engine Machine Learning
@@ -15,8 +6,33 @@ High-Performance Interactive UI/UX with Dual-Engine Machine Learning
 
 import io
 import json
+import sys
 import warnings
+from collections import UserList
 from pathlib import Path
+
+# Suppress serialization warnings from legacy XGBoost / scikit-learn builds
+warnings.filterwarnings("ignore")
+
+# ---------------------------------------------------------
+# Compatibility shim for scikit-learn ColumnTransformer
+# ---------------------------------------------------------
+try:
+    import sklearn.compose._column_transformer as _ct
+
+    if not hasattr(_ct, "_RemainderColsList"):
+        class _RemainderColsList(UserList):
+            """Compatibility fallback for deserializing models across scikit-learn versions."""
+            def __init__(self, columns=None, *, future_dtype=None, warning_was_emitted=False, warning_enabled=True):
+                super().__init__(columns if columns is not None else [])
+                self.future_dtype = future_dtype
+                self.warning_was_emitted = warning_was_emitted
+                self.warning_enabled = warning_enabled
+
+        _ct._RemainderColsList = _RemainderColsList
+        sys.modules["sklearn.compose._column_transformer"]._RemainderColsList = _RemainderColsList
+except Exception:
+    pass
 
 import joblib
 import numpy as np
@@ -24,9 +40,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-
-# Suppress serialization warning from legacy XGBoost builds
-warnings.filterwarnings("ignore")
 
 # ---------------------------------------------------------
 # Page Configuration & Styling
@@ -1257,7 +1270,7 @@ with tab_roi:
     st.markdown("##### 📈 5-Year Net Investor Profit & Yield Simulation")
     
     interest_paid_5y = (total_interest_payable / tenure_years) * 5.0
-    total_rental_5y = (expected_monthly_rent * 12 * 5)
+    total_rental_5y = expected_monthly_rent * 12 * 5
     capital_gain_rupees = abs_gain * 100000.0
 
     net_profit_5y = capital_gain_rupees + total_rental_5y - interest_paid_5y
@@ -1391,6 +1404,10 @@ with tab_dossier:
     st.markdown("### 📋 Executive Investment Dossier & Report Export")
     st.caption("Generate institutional-grade investment summaries for record keeping, partner presentation, or banking.")
 
+    clean_avail = availability_status.replace("_", " ")
+    amenities_display = ", ".join(selected_amenities) if selected_amenities else "None specified"
+    age_band = input_df["Property_Age_Band"].iloc[0]
+
     dossier_data = {
         "Attribute": [
             "Project Location",
@@ -1411,15 +1428,15 @@ with tab_dossier:
         ],
         "Assessment Value": [
             f"{selected_city}, {selected_state}",
-            f"{bhk} BHK {property_type} ({availability_status.replace('_', ' ')})",
+            f"{bhk} BHK {property_type} ({clean_avail})",
             f"{size_sqft:,.0f} SqFt",
             format_inr(price_lakhs),
             f"₹ {calc_rate:,.0f} / SqFt",
-            f"Built {year_built} ({age_of_property} years old, {input_df['Property_Age_Band'].iloc[0]})",
+            f"Built {year_built} ({age_of_property} years old, {age_band})",
             f"Floor {floor_no} of {total_floors}",
             f"{nearby_schools} Schools, {nearby_hospitals} Hospitals",
             f"{public_transport}",
-            f"{', '.join(selected_amenities) if selected_amenities else 'None specified'}",
+            amenities_display,
             "✅ Good Investment" if is_good_investment else "⚠️ Caution Advised",
             f"{prob_good*100:.2f}%",
             format_inr(future_price_pred),
