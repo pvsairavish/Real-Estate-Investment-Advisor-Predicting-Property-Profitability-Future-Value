@@ -8,12 +8,13 @@
 [![XGBoost](https://img.shields.io/badge/XGBoost-Powered-FF6600?style=for-the-badge&logo=xgboost&logoColor=white)](https://xgboost.ai/)
 [![Plotly](https://img.shields.io/badge/Plotly-Dashboards-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)](https://plotly.com/)
 [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-Pipelines-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![MLflow](https://img.shields.io/badge/MLflow-13%20Tracked%20Runs-0194E2?style=for-the-badge&logo=mlflow&logoColor=white)](https://mlflow.org/)
 [![Author](https://img.shields.io/badge/Author-Venkata%20Sai%20Ravish%20Punati-blueviolet?style=for-the-badge)](https://github.com/pvsairavish)
 
 ---
 
 ### 🌐 **Live Interactive Web Application**
-👉 **[https://2z42grgcd7qg5fwbqsdrso.streamlit.app/](https://2z42grgcd7qg5fwbqsdrso.streamlit.app/)** 👈
+👉 **[Launch PropVision AI on Streamlit Cloud](https://2z42grgcd7qg5fwbqsdrso.streamlit.app/)** 👈
 
 </div>
 
@@ -23,7 +24,9 @@
 - [Executive Summary](#-executive-summary)
 - [Key Problems Addressed](#-key-problems-addressed)
 - [System Architecture](#-system-architecture)
-- [Machine Learning Dual-Engine](#-machine-learning-dual-engine)
+- [Data Quality & 20-Question EDA Findings](#-data-quality--20-question-eda-findings)
+- [Machine Learning Dual-Engine & Benchmarks](#-machine-learning-dual-engine--benchmarks)
+- [MLflow Experiment Tracking](#-mlflow-experiment-tracking)
 - [Feature Engineering Pipeline](#-feature-engineering-pipeline)
 - [Interactive UI / UX Design & Capabilities](#-interactive-ui--ux-design--capabilities)
 - [Project Directory Structure](#-project-directory-structure)
@@ -35,26 +38,24 @@
 
 ## 🚀 Executive Summary
 
-**PropVision AI** is an institutional-grade, data-driven PropTech and FinTech advisory platform built for residential property appraisal across India. Trained on **250,000+ verified housing transactions** spanning 20 states and 42 metropolitan cities, the platform eliminates emotional bias and speculative broker guidance by offering:
+**PropVision AI** is an end-to-end PropTech and FinTech advisory platform built for residential property evaluation across India. Trained and validated on **250,000 housing records** spanning **20 states** and **42 cities**, the project combines a complete ML experimentation notebook ([`real-estate-investment-advisor.ipynb`](real-estate-investment-advisor.ipynb)) with a deployed Streamlit application ([`app.py`](app.py)) offering:
 
-1. **AI Deal Viability Classification**: Predicting whether an asset is a **Strong Buy** or **Hold/Caution** using tuned Gradient Boosting.
-2. **5-Year Capital Appreciation Forecasting**: Projecting future asset valuation in Indian Lakhs/Crores and calculating expected annual CAGR.
-3. **5-Pillar Asset Health Radar**: Multi-dimensional scoring across Transit Connectivity, Civic Density, Amenities Richness, Safety, and Asset Modernity.
-4. **Mortgage & Net Cashflow Modeling**: Factoring in loan principal amortization, interest outlays, down payment equity, and cumulative rental yields.
-5. **Real-Time "What-If" Sensitivity Simulator**: Quantifying the impact of negotiation discounts and milestone delivery stages.
+1. **AI Deal Viability Classification:** Classifies properties as **Good Investment** (`1`) or **Caution / Not Good** (`0`) with probability confidence scores, benchmarked against a Majority-Class Baseline, Logistic Regression, Random Forest, and XGBoost.
+2. **5-Year Scenario Price Forecasting:** Estimates 5-year property value (in Indian Lakhs/Crores) and annual CAGR, benchmarked against Mean and Fixed-Growth (`8% p.a.`) baselines, Linear Regression, Random Forest, and XGBoost.
+3. **5-Pillar Asset Health Radar:** Evaluates Transit Connectivity, Civic Infrastructure Density, Amenities Richness, Parking & Security, and Asset Modernity.
+4. **Mortgage & Net Cashflow Modeling:** Computes monthly EMI, equity vs. debt breakdown, and 5-year net investor return factoring in rental income and interest outflow.
+5. **Real-Time "What-If" Sensitivity Simulator & Dossier Export:** Stress-tests negotiation discounts and exports institutional CSV/JSON appraisal reports.
 
 ---
 
 ## 🔍 Key Problems Addressed
 
-Traditional real estate evaluation suffers from four core inefficiencies:
-
 | Traditional Real Estate Appraisal | PropVision AI Solution |
 | :--- | :--- |
-| **Anecdotal & Subjective:** Reliance on broker word-of-mouth and inflated builder brochures. | **Data-Driven Intelligence:** Trained on 250k real transactional data points. |
-| **Static Price-per-SqFt:** Averages ignore floor ratio, society amenities, and transit distance. | **Multi-Dimensional Modeling:** 28 engineered features capturing structural and location nuances. |
-| **Blind Long-Term Outlook:** No quantitative forecasting of 5-year capital appreciation. | **Machine-Learned Scenario Projections:** Statistical regression forecasting future asset valuation. |
-| **Separation from Financing:** Property valuation is disconnected from mortgage & cash flows. | **Integrated FinTech Engine:** Computes monthly EMI, interest drag, and true ROIC on down payment equity. |
+| **Anecdotal & Subjective:** Reliance on broker claims without standardized criteria. | **Rule + ML Screening:** Consistent evaluation across 250k records and 28 engineered features. |
+| **No Baseline Proof:** Models presented without checking simple heuristics or majority rules. | **Explicit Baselines:** Every model is benchmarked against Majority-Class (`DummyClassifier`), Mean (`DummyRegressor`), and Fixed `8% p.a.` growth rules. |
+| **Static Price-per-SqFt:** Averages ignore floor ratio, society amenities, and transit distance. | **Multi-Dimensional Pipelines:** Combines numerical scaling and categorical encoding in unified `ColumnTransformer` pipelines. |
+| **Disconnected Financing:** Valuation lacks loan and cashflow visibility. | **Integrated FinTech Planner:** Computes monthly EMI, interest drag, and net equity ROI. |
 
 ---
 
@@ -63,91 +64,115 @@ Traditional real estate evaluation suffers from four core inefficiencies:
 ```mermaid
 flowchart TD
     subgraph Data_Layer ["1. Data & Preprocessing Layer"]
-        A[india_housing_prices.csv<br/>250,000+ Records] --> B[Feature Engineering Engine]
+        A[india_housing_prices.csv<br/>250,000 Records] --> B[Quality Audit & Feature Engineering]
         B --> C[Numeric Pipeline:<br/>Median Imputer + StandardScaler]
         B --> D[Categorical Pipeline:<br/>Most-Frequent Imputer + OneHotEncoder]
-        C --> E[ColumnTransformer Matrix]
+        C --> E[ColumnTransformer Matrix - 28 Features]
         D --> E
     end
 
-    subgraph Model_Layer ["2. Dual-Engine Machine Learning Core"]
-        E --> F[Tuned XGBoost Classifier<br/>Deal Viability: Good / Caution]
-        E --> G[Tuned XGBoost Regressor<br/>5-Year Future Valuation Target]
-        H[model_metadata.json<br/>Hyperparameters & Metrics] -.-> F
-        H -.-> G
+    subgraph Model_Layer ["2. Dual-Engine ML & MLflow Tracking"]
+        E --> F[Classification Candidates<br/>Dummy / LogReg / RF / XGBoost]
+        E --> G[Regression Candidates<br/>Dummy / Fixed-8% / LinReg / RF / XGBoost]
+        F --> H[(MLflow Tracking<br/>13 Finished Runs)]
+        G --> H
+        F --> I[Champion Classifier:<br/>XGBoost Classifier - F1: 0.9974]
+        G --> J[Champion Regressor:<br/>Tuned XGBoost Regressor - RMSE: 0.9553]
     end
 
-    subgraph Service_Layer ["3. Business Logic & Shims"]
-        F --> I[Prediction Orchestrator]
-        G --> I
-        J[scikit-learn Compatibility Shims<br/>_RemainderColsList & _fill_dtype Handlers] --> I
-        K[Financial Mortgage Engine<br/>EMI, Donut Debt Breakdown, Net ROIC] --> I
+    subgraph Service_Layer ["3. Deployment Artifacts & Compatibility"]
+        I --> K[best_classification_pipeline.joblib]
+        J --> L[best_regression_pipeline.joblib]
+        H --> M[model_metadata.json + locations.json]
+        K --> N[app.py Prediction Engine<br/>Cross-Version sklearn Shims]
+        L --> N
+        M --> N
     end
 
-    subgraph UI_Layer ["4. Interactive User Experience (Streamlit + Plotly)"]
-        I --> L1[Tab 1: AI Deal Valuation & Radar Scorecard]
-        I --> L2[Tab 2: Macro Market Trends & 250k Analytics]
-        I --> L3[Tab 3: Mortgage & Net ROI Financial Planner]
-        I --> L4[Tab 4: What-If Sensitivity Simulator]
-        I --> L5[Tab 5: Executive Dossier & CSV/JSON Export]
+    subgraph UI_Layer ["4. Interactive Streamlit + Plotly UI"]
+        N --> O1[Tab 1: AI Valuation, Gauge & Radar]
+        N --> O2[Tab 2: Market Trends & City Analytics]
+        N --> O3[Tab 3: Mortgage & Net ROI Planner]
+        N --> O4[Tab 4: What-If Sensitivity Simulator]
+        N --> O5[Tab 5: Executive Dossier & Export]
     end
 ```
 
 ---
 
-## 🤖 Machine Learning Dual-Engine
+## 📊 Data Quality & 20-Question EDA Findings
 
-PropVision AI decouples investment decisions into two specialized machine learning workflows:
+The notebook executes full data validation and **20 structured EDA visualizations** across all 250,000 listings:
 
-### 1. Classification Engine (Deal Viability)
-- **Algorithm:** Tuned Extreme Gradient Boosting (XGBoost) Classifier.
-- **Objective:** `binary:logistic`
-- **Output:** Binary verdict (`Good Investment` [1] vs `Not Good Investment` [0]) with probability confidence score.
-- **Key Hyperparameters:**
-  - `n_estimators`: 200
-  - `max_depth`: 8
-  - `learning_rate`: 0.08
-  - `subsample`: 0.75
-  - `colsample_bytree`: 0.75
+- **Completeness & Cleaning:** **0** duplicate rows and **0** raw nulls. Detected **2,534** invalid `Price_per_SqFt = 0` entries and recalculated `Price_per_SqFt = Price_in_Lakhs / Size_in_SqFt`.
+- **Synthetic Consistency Audit:** Identified **116,304** records where `Floor_No > Total_Floors`; handled safely via `Floor_Ratio` clipped to `[0, 1]`.
+- **IQR Outlier Audit:** **0** outliers in `Price_in_Lakhs` (median **₹253.87L**, mean **₹254.59L**, range ₹10L–₹500L) and `Size_in_SqFt` (median **2,747 SqFt**); **20,020** upper-tail unit-rate outliers in `Price_per_SqFt` (> `0.3250` L/SqFt).
+- **Market Structure:** Balanced geographic spread across 20 states (e.g., Odisha `12,681`, Tamil Nadu `12,629`, West Bengal `12,622`) and 42 cities (top average prices led by Bangalore **₹258.46L** and Surat **₹258.08L**). Near-zero raw linear correlation between `Size_in_SqFt` and `Price_in_Lakhs` (`r = -0.0025`), motivating nonlinear tree models.
+- **Target Distributions:** `Good_Investment` is **61.82%** Not Good (`154,559`) vs **38.18%** Good (`95,441`); `Future_Price_5Y` spans **₹14.33L to ₹804.74L**.
 
-### 2. Regression Engine (5-Year Scenario Valuation)
-- **Algorithm:** Tuned XGBoost Regressor.
-- **Objective:** `reg:squarederror`
-- **Output:** Estimated property value in Indian Lakhs after a 5-year horizon.
-- **Compound Annual Growth Rate (CAGR) Formula:**
-  $$\text{CAGR} = \left( \frac{\text{Future Price}}{\text{Current Price}} \right)^{\frac{1}{5}} - 1$$
-- **Key Hyperparameters:**
-  - `n_estimators`: 200
-  - `max_depth`: 7
-  - `learning_rate`: 0.10
-  - `subsample`: 0.85
-  - `colsample_bytree`: 1.0
+---
+
+## 🤖 Machine Learning Dual-Engine & Benchmarks
+
+All models are evaluated on identical **80/20 splits** (`200,000` train / `50,000` test, `RANDOM_STATE = 42`) with **3-fold CV** and **RandomizedSearchCV** tuning, selecting champions strictly by evidence rather than default.
+
+### 1. Classification Benchmarks (Target: `Good_Investment`)
+*Selection Criterion: Highest test **F1-score** (tie-breaker: **ROC-AUC**)*
+
+| Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **🏆 XGBoost Classifier (Champion)** | **0.9980** | **0.9975** | **0.9972** | **0.9974** | **1.0000** |
+| Tuned XGBoost Classifier | 0.9978 | 0.9974 | 0.9970 | 0.9972 | 1.0000 |
+| Random Forest Classifier | 0.9469 | 0.8968 | 0.9728 | 0.9333 | 0.9952 |
+| Logistic Regression | 0.9241 | 0.8769 | 0.9319 | 0.9036 | 0.9827 |
+| Majority-Class Baseline (`DummyClassifier`) | 0.6182 | 0.0000 | 0.0000 | 0.0000 | 0.5000 |
+
+- **3-Fold Stratified CV (XGBoost Classifier):** Accuracy `0.9974 ± 0.0002`, F1 `0.9967 ± 0.0002`.
+- **Champion Selection Insight:** Untuned `XGBoost Classifier` (`n_estimators=250`, `max_depth=8`, `learning_rate=0.08`, `subsample=0.85`, `colsample_bytree=0.85`) outperformed the 5-iteration randomized search candidate (`F1 = 0.9974` vs `0.9972`), so the pipeline explicitly promoted the higher-scoring model.
+
+### 2. Regression Benchmarks (Target: `Future_Price_5Y`)
+*Selection Criterion: Lowest test **RMSE** (verified alongside **MAE** and **R²**)*
+
+| Model | MAE (Lakhs) | RMSE (Lakhs) | R² |
+| :--- | :---: | :---: | :---: |
+| **🏆 Tuned XGBoost Regressor (Champion)** | **0.7973** | **0.9553** | **1.0000** |
+| XGBoost Regressor | 0.8316 | 1.0229 | 1.0000 |
+| Random Forest Regressor | 1.4622 | 1.7952 | 0.9999 |
+| Linear Regression | 4.6285 | 6.3673 | 0.9991 |
+| Fixed-Growth Baseline (`8% p.a.`) | 12.4940 | 17.4622 | 0.9933 |
+| Mean Baseline (`DummyRegressor`) | 184.9056 | 213.6166 | -0.0000 |
+
+- **Tuned Champion Parameters:** `n_estimators=200`, `max_depth=7`, `learning_rate=0.10`, `subsample=0.85`, `colsample_bytree=1.0`.
+- **Diagnostics:** Verified via Actual-vs-Predicted scatter, Residuals-vs-Predicted, and Residual error distribution plots, beating the Fixed-Growth `8%` rule by **~94.5% reduction in RMSE** (`17.4622 → 0.9553`).
+
+---
+
+## 📈 MLflow Experiment Tracking
+
+All **13 experiments** (`FINISHED`) are tracked in MLflow under experiment `Real_Estate_Investment_Advisor` (SQLite backend):
+
+- **6 Classification Runs:** `classification_baseline_majority_class`, `classification_logistic_regression`, `classification_random_forest`, `classification_xgboost`, `classification_tuned_candidate`, and `classification_champion_selected` (`champion="true"`).
+- **7 Regression Runs:** `regression_baseline_mean`, `regression_baseline_fixed_growth_8pct`, `regression_linear_regression`, `regression_random_forest`, `regression_xgboost`, `regression_tuned_candidate`, and `regression_champion_selected` (`champion="true"`).
+- **Logged Artifacts:** Parameters, all classification/regression test metrics, serialized sklearn/XGBoost pipelines, and `classification_comparison.csv` / `regression_comparison.csv`.
 
 ---
 
 ## 🧪 Feature Engineering Pipeline
 
-The platform transforms raw transactional parameters into 28 engineered feature vectors:
+Raw inputs are transformed into **28 model features** (`16` numeric + `12` categorical), excluding identifiers (`ID`, `Locality`) and target-construction columns (`Investment_Score`, `Price_vs_City_Median`, `PPSqFt_vs_City_Median`, `Annual_Appreciation_Rate`):
 
-| Feature Name | Type | Description & Mathematical Definition |
+| Feature Name | Type | Description & Definition |
 | :--- | :--- | :--- |
-| `Price_per_SqFt` | Numeric | $\frac{\text{Price in Lakhs}}{\text{Size in SqFt}}$ (captures entry multiple efficiency) |
-| `Floor_Ratio` | Numeric | $\min\left(1.0, \frac{\text{Floor No}}{\text{Total Floors}}\right)$ (elevation and view premium) |
-| `School_Hospital_Access` | Numeric | $\text{Nearby Schools} + \text{Nearby Hospitals}$ (civic density score) |
-| `Amenities_Count` | Numeric | Count of parsed society amenities (Gym, Pool, Clubhouse, Garden, Playground) |
-| `Property_Age_Band` | Categorical | `New` (≤5y), `Moderate` (6-15y), `Old` (16-25y), `Very_Old` (>25y) |
-| `Has_Parking` | Binary | Binary flag (1 if dedicated parking present, 0 otherwise) |
-| `Has_Security` | Binary | Binary flag (1 if 24/7 security active, 0 otherwise) |
-| `Is_Ready_To_Move` | Binary | Binary flag (1 if Ready-to-Move, 0 if Under-Construction) |
-| `Public_Transport_Accessibility` | Categorical | High, Medium, Low |
-| `Facing` | Categorical | Cardinal orientation: East, North, South, West |
-| `Owner_Type` | Categorical | Direct Owner, Broker, or Builder |
+| `Price_per_SqFt` | Numeric | $\frac{\text{Price in Lakhs}}{\text{Size in SqFt}}$ |
+| `Floor_Ratio` | Numeric | $\text{clip}\left(\frac{\text{Floor No}}{\text{Total Floors}}, 0, 1\right)$ |
+| `School_Hospital_Access` | Numeric | $\text{Nearby Schools} + \text{Nearby Hospitals}$ |
+| `Amenities_Count` | Numeric | Count of society amenities (`Clubhouse`, `Garden`, `Gym`, `Playground`, `Pool`) |
+| `Property_Age_Band` | Categorical | `New` (≤5y), `Moderate` (6–15y), `Old` (16–25y), `Very_Old` (>25y) |
+| `Has_Parking`, `Has_Security`, `Is_Ready_To_Move` | Binary | `1` / `0` flags mapped from availability, security, and parking status |
 
 ---
 
 ## 🎨 Interactive UI / UX Design & Capabilities
-
-The application features a dark sapphire glassmorphic design system (`#0B0F19` to `#1E1B4B`) built with modern CSS and Plotly graphics across five dedicated tabs:
 
 ```mermaid
 sequenceDiagram
@@ -160,43 +185,20 @@ sequenceDiagram
 
     Investor->>UI: Select 1-Click Preset (e.g. Urban Metro 3BHK)
     UI->>State: Update widget session keys (State, Price, Size, Amenities)
-    State->>UI: Synchronize sliders & calculate live ₹/SqFt rate
-    Investor->>UI: Click 'Run Appraisal' or adjust sliders
-    UI->>ML: Pass 28 engineered feature vector
-    ML-->>UI: Return Class (1), Probability (99.8%), 5Y Value (₹190.7 L)
-    UI-->>Investor: Render Confidence Gauge, 5Y Trajectory, & 5-Pillar Radar
-    Investor->>UI: Switch to Mortgage Planner / What-If Sensitivity
-    UI->>Export: Compile Full Audit Dossier
-    Export-->>Investor: Download Instant CSV / Audited JSON Report
+    State->>UI: Synchronize inputs & calculate live ₹/SqFt rate
+    UI->>ML: Pass 28-feature row to Champion Pipelines
+    ML-->>UI: Return Class, Confidence Score & 5Y Valuation
+    UI-->>Investor: Render Confidence Gauge, 5Y Trajectory & 5-Pillar Radar
+    Investor->>UI: Explore Market Trends / Mortgage ROI / What-If Simulator
+    UI->>Export: Compile Full Appraisal Dossier
+    Export-->>Investor: Download CSV / Audited JSON Report
 ```
 
-### 🔮 Tab 1: AI Deal Valuation & Health Scorecard
-- **1-Click Presets**: Test curated archetypes instantly (Urban Metro 3BHK, Luxury Gated Villa, Sea-View Penthouse, Suburban Starter Home).
-- **Cascading Geography**: Selecting a state dynamically filters cities matching model training levels.
-- **Investment Confidence Gauge**: Plotly radial gauge with tiered risk bands (Red <45%, Amber 45-65%, Green 65-100%).
-- **5-Year Growth Trajectory Curve**: Shaded area curve benchmarking projected valuation against a 7.0% regional inflation index.
-- **5-Pillar Asset Health Radar**: Spider polar chart visualizing Transit, Civic Density, Amenities, Safety, and Modernity.
-
-### 📊 Tab 2: Macro Market Trends & Analytics
-- Direct querying over the 250,000+ record dataset.
-- Filters by State and Property Type.
-- Interactive City Rate Rankings and Property Typology Price Distribution Box Plots.
-
-### 💰 Tab 3: Mortgage Financing & Net ROI Planner
-- Interactive Down Payment (10% to 50%), Annual Interest Rate (6.5% to 13%), and Tenure (5 to 30 years) sliders.
-- Real-time monthly EMI calculation:
-  $$\text{EMI} = \frac{P \cdot r \cdot (1 + r)^n}{(1 + r)^n - 1}$$
-- Donut chart breaking down Equity Down Payment vs Principal Debt vs Total Bank Interest.
-- 5-Year Net Investor Return simulation:
-  $$\text{Net Profit} = \text{Capital Gain} + \text{Rental Yield} - \text{Mortgage Interest}$$
-
-### ⚖️ Tab 4: "What-If" Sensitivity Simulator
-- Stress-tests developer negotiations with a dynamic price discount slider (-25% to +25%).
-- Side-by-side comparative cards and grouped bar charts comparing the base property against hypothetical scenarios.
-
-### 📋 Tab 5: Executive Dossier & Report Export
-- Full institutional appraisal sheet compiling structural attributes, financial returns, and qualitative risk vectors.
-- One-click downloads for **CSV** summaries and formatted **JSON** audit dossiers.
+- **Tab 1 — 🔮 AI Investment Advisor:** 1-click curated presets, cascading State → City dropdowns, live `₹/SqFt` pill, Plotly Investment Confidence Gauge, 5-Year Trajectory vs 7% benchmark, and 5-Pillar Asset Health Radar.
+- **Tab 2 — 📊 Market Trends & Analytics:** Interactive filtering over `india_housing_prices.csv` with city-level price rankings and property-type box plots.
+- **Tab 3 — 💰 Mortgage & ROI Planner:** Down payment, interest rate, and tenure sliders computing monthly EMI $\text{EMI} = \frac{P \cdot r \cdot (1 + r)^n}{(1 + r)^n - 1}$, financing donut chart, and 5-year net investor gain.
+- **Tab 4 — ⚖️ What-If Comparison:** Negotiation discount slider (`-25%` to `+25%`), floor/readiness toggles, and side-by-side delta comparison charts.
+- **Tab 5 — 📋 Investment Dossier:** Appraisal summary table with one-click **CSV** and **JSON** downloads.
 
 ---
 
@@ -205,18 +207,18 @@ sequenceDiagram
 ```
 Real-Estate-Investment-Advisor/
 │
-├── app.py                     # Streamlit application with UI/UX & Plotly dashboards
-├── locations.json             # Categorical mapping of 20 states and 42 cities
-├── requirements.txt           # Production environment dependencies
-├── README.md                  # Comprehensive technical documentation
+├── app.py                                 # Streamlit application with Plotly UI/UX
+├── real-estate-investment-advisor.ipynb   # Executed EDA, Baselines, MLflow & Training Notebook
+├── india_housing_prices.csv               # Source dataset (250,000 housing records)
+├── locations.json                         # State-to-city mapping (20 states, 42 cities)
+├── requirements.txt                       # Streamlit deployment dependencies
+├── README.md                              # Project documentation & benchmark report
 │
-├── models/
-│   ├── best_classification_pipeline.joblib  # Serialized XGBoost Deal Classifier
-│   ├── best_regression_pipeline.joblib      # Serialized XGBoost 5Y Price Regressor
-│   ├── locations.json                       # Backup location taxonomy
-│   └── model_metadata.json                  # Model hyperparams & training metrics
-│
-└── india_housing_prices.csv                 # Source dataset (250,000+ Indian property records)
+└── models/
+    ├── best_classification_pipeline.joblib  # Champion XGBoost Classifier pipeline
+    ├── best_regression_pipeline.joblib      # Champion Tuned XGBoost Regressor pipeline
+    ├── locations.json                       # Location taxonomy copy
+    └── model_metadata.json                  # Champion parameters & benchmark comparison tables
 ```
 
 ---
@@ -242,7 +244,11 @@ source venv/bin/activate
 
 ### 3. Install Dependencies
 ```bash
+# For running the Streamlit app
 pip install -r requirements.txt
+
+# Optional: additional packages to re-run the full training notebook
+pip install matplotlib seaborn mlflow h5py ipykernel
 ```
 
 ### 4. Run the Streamlit Application
@@ -265,4 +271,4 @@ Open your browser at `http://localhost:8501`.
 
 ## ⚖️ License & Disclaimer
 
-*Educational & Analytical Disclaimer: Model projections and financial simulations provided by PropVision AI are algorithmic estimates based on historical scenario modeling and should not be construed as registered financial, investment, or legal advice. Independent physical site verification and legal title due diligence are recommended prior to executing real estate transactions.*
+*Educational & Analytical Disclaimer: `Good_Investment` and `Future_Price_5Y` are rule- and scenario-engineered targets constructed because the source dataset does not contain observed future sale prices. Model outputs represent algorithmic scenario estimates rather than real-world longitudinal validation and should not be construed as financial, investment, or legal advice.*

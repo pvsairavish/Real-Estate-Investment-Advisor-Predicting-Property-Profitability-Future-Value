@@ -1,15 +1,93 @@
 {
-    "classification_model": "Tuned XGBoost Classifier",
+    "classification_model": "XGBoost Classifier",
+    "classification_selection_criterion": "Highest F1-score on 50k stratified test set (tie-breaker: ROC-AUC)",
     "classification_best_params": {
-        "model__subsample": 0.75,
-        "model__n_estimators": 200,
-        "model__max_depth": 8,
-        "model__learning_rate": 0.08,
-        "model__colsample_bytree": 0.75
+        "objective": "binary:logistic",
+        "base_score": null,
+        "booster": null,
+        "callbacks": null,
+        "colsample_bylevel": null,
+        "colsample_bynode": null,
+        "colsample_bytree": 0.85,
+        "device": null,
+        "early_stopping_rounds": null,
+        "enable_categorical": true,
+        "eval_metric": "logloss",
+        "feature_types": null,
+        "feature_weights": null,
+        "gamma": null,
+        "grow_policy": null,
+        "importance_type": null,
+        "interaction_constraints": null,
+        "learning_rate": 0.08,
+        "max_bin": null,
+        "max_cat_threshold": null,
+        "max_cat_to_onehot": null,
+        "max_delta_step": null,
+        "max_depth": 8,
+        "max_leaves": null,
+        "min_child_weight": null,
+        "missing": null,
+        "monotone_constraints": null,
+        "multi_strategy": null,
+        "n_estimators": 250,
+        "n_jobs": -1,
+        "num_parallel_tree": null,
+        "random_state": 42,
+        "reg_alpha": null,
+        "reg_lambda": null,
+        "sampling_method": null,
+        "scale_pos_weight": null,
+        "subsample": 0.85,
+        "tree_method": "hist",
+        "validate_parameters": null,
+        "verbosity": null
     },
-    "classification_joblib": "/kaggle/working/real_estate_ml/best_classification_pipeline.joblib",
-    "classification_h5_package": "/kaggle/working/real_estate_ml/best_classification_model.h5",
+    "classification_comparison": [
+        {
+            "Model": "XGBoost Classifier",
+            "Accuracy": 0.998,
+            "Precision": 0.9975369458128078,
+            "Recall": 0.9972233864207879,
+            "F1": 0.9973801414723605,
+            "ROC_AUC": 0.9999854825433124
+        },
+        {
+            "Model": "Tuned XGBoost Classifier",
+            "Accuracy": 0.99784,
+            "Precision": 0.9973794549266247,
+            "Recall": 0.9969614417435038,
+            "F1": 0.9971704045273527,
+            "ROC_AUC": 0.999982586170037
+        },
+        {
+            "Model": "Random Forest Classifier",
+            "Accuracy": 0.94688,
+            "Precision": 0.8968315301391035,
+            "Recall": 0.9727577535624476,
+            "F1": 0.9332529151588259,
+            "ROC_AUC": 0.9951697798086535
+        },
+        {
+            "Model": "Logistic Regression",
+            "Accuracy": 0.92408,
+            "Precision": 0.8769101843636005,
+            "Recall": 0.9319467728415759,
+            "F1": 0.9035912023162493,
+            "ROC_AUC": 0.9827374881691033
+        },
+        {
+            "Model": "Majority-Class Baseline",
+            "Accuracy": 0.61824,
+            "Precision": 0.0,
+            "Recall": 0.0,
+            "F1": 0.0,
+            "ROC_AUC": 0.5
+        }
+    ],
+    "classification_joblib": "models/best_classification_pipeline.joblib",
     "regression_model": "Tuned XGBoost Regressor",
+    "regression_selection_criterion": "Lowest RMSE on 50k test set (verified with MAE and R2)",
     "regression_best_params": {
         "model__subsample": 0.85,
         "model__n_estimators": 200,
@@ -17,8 +95,45 @@
         "model__learning_rate": 0.1,
         "model__colsample_bytree": 1.0
     },
-    "regression_joblib": "/kaggle/working/real_estate_ml/best_regression_pipeline.joblib",
-    "regression_h5_package": "/kaggle/working/real_estate_ml/best_regression_model.h5",
+    "regression_comparison": [
+        {
+            "Model": "Tuned XGBoost Regressor",
+            "MAE": 0.7973090089001522,
+            "RMSE": 0.9552752428549364,
+            "R2": 0.9999800019510141
+        },
+        {
+            "Model": "XGBoost Regressor",
+            "MAE": 0.8315534559887338,
+            "RMSE": 1.0229200681396051,
+            "R2": 0.9999770694759343
+        },
+        {
+            "Model": "Random Forest Regressor",
+            "MAE": 1.4621599281028832,
+            "RMSE": 1.7952217322828747,
+            "R2": 0.9999293736476635
+        },
+        {
+            "Model": "Linear Regression",
+            "MAE": 4.628466448087848,
+            "RMSE": 6.367260397279457,
+            "R2": 0.9991115442443939
+        },
+        {
+            "Model": "Fixed-Growth Baseline (8% p.a.)",
+            "MAE": 12.49396609060011,
+            "RMSE": 17.462184887869192,
+            "R2": 0.9933176726468735
+        },
+        {
+            "Model": "Mean Baseline (DummyRegressor)",
+            "MAE": 184.90559489811986,
+            "RMSE": 213.61664383330637,
+            "R2": -1.744592326602401e-06
+        }
+    ],
+    "regression_joblib": "models/best_regression_pipeline.joblib",
     "random_state": 42,
     "dataset_rows": 250000,
     "dataset_columns": 36,
